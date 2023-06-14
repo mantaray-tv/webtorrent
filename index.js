@@ -1,4 +1,5 @@
 /*! webtorrent. MIT License. WebTorrent LLC <https://webtorrent.io/opensource> */
+import './lib/global.js';
 import EventEmitter from 'events'
 import path from 'path'
 import createTorrent, { parseInput } from 'create-torrent'
