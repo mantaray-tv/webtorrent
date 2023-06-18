@@ -347,50 +347,66 @@ export default class WebTorrent extends EventEmitter {
     const torrent = this.add(null, opts, onTorrent)
     let streams
 
-    if (isFileList(input)) input = Array.from(input)
-    else if (!Array.isArray(input)) input = [input]
-
-    parallel(input.map(item => async cb => {
-      if (!opts.preloadedStore && isReadable(item)) {
-        const chunks = []
-        try {
-          for await (const chunk of item) {
-            chunks.push(chunk)
+    if (input != null) {
+      if (isFileList(input)) input = Array.from(input)
+      else if (!Array.isArray(input)) input = [input]
+      parallel(input.map(item => async cb => {
+        if (!opts.preloadedStore && isReadable(item)) {
+          const chunks = []
+          try {
+            for await (const chunk of item) {
+              chunks.push(chunk)
+            }
+          } catch (err) {
+            return cb(err)
           }
-        } catch (err) {
-          return cb(err)
+          const buf = concat(chunks)
+          buf.name = item.name
+          cb(null, buf)
+        } else {
+          cb(null, item)
         }
-        const buf = concat(chunks)
-        buf.name = item.name
-        cb(null, buf)
-      } else {
-        cb(null, item)
-      }
-    }), (err, input) => {
-      if (this.destroyed) return
-      if (err) return torrent._destroy(err)
-
-      parseInput(input, opts, (err, files) => {
+      }), (err, input) => {
         if (this.destroyed) return
         if (err) return torrent._destroy(err)
 
-        streams = files.map(file => file.getStream)
-
-        createTorrent(input, opts, async (err, torrentBuf) => {
+        parseInput(input, opts, (err, files) => {
           if (this.destroyed) return
           if (err) return torrent._destroy(err)
 
-          const existingTorrent = await this.get(torrentBuf)
-          if (existingTorrent) {
-            console.warn('A torrent with the same id is already being seeded')
-            torrent._destroy()
-            if (typeof onseed === 'function') onseed(existingTorrent)
-          } else {
-            torrent._onTorrentId(torrentBuf)
-          }
+          streams = files.map(file => file.getStream)
+
+          createTorrent(input, opts, async (err, torrentBuf) => {
+            if (this.destroyed) return
+            if (err) return torrent._destroy(err)
+
+            const existingTorrent = await this.get(torrentBuf)
+            if (existingTorrent) {
+              console.warn('A torrent with the same id is already being seeded')
+              torrent._destroy()
+              if (typeof onseed === 'function') onseed(existingTorrent)
+            } else {
+              torrent._onTorrentId(torrentBuf)
+            }
+          })
         })
       })
-    })
+    } else {
+      const encoder = new TextEncoder()
+      torrent._onTorrentInfo({
+        info: opts.metadata,
+        name: opts.metadata.name.toString(),
+        announce: globalThis.WEBTORRENT_ANNOUNCE,
+        infoHashBuffer: encoder.encode(opts.infoHash),
+        infoHash: opts.infoHash,
+        created: new Date(),
+        createdBy: opts.createdBy,
+        urlList: [],
+        length: opts.metadata.length,
+        pieceLength: opts.metadata['piece length'],
+        pieces: opts.metadata.pieces.toString('hex').match(/.{1,40}/g)
+      })
+    }
 
     return torrent
   }
