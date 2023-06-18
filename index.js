@@ -295,39 +295,6 @@ export default class WebTorrent extends EventEmitter {
     return torrent
   }
 
-  plantProxiedSeed (infoHash, opts = {}) {
-    if (this.destroyed) throw new Error('client is destroyed')
-
-    this._debug('plant')
-    opts = opts ? Object.assign({}, opts) : {}
-
-    // no need to verify the hashes we create
-    opts.skipVerify = true
-
-    if (!opts.createdBy) opts.createdBy = `WebTorrent/${VERSION_STR}`
-    
-    this.on('listening', () => {
-      torrent._startDiscovery()
-    })
-
-    const torrent = this.add(infoHash, opts)
-    
-    const meta = {
-      infoHash,
-      keywords: [],
-      announce: globalThis.WEBTORRENT_ANNOUNCE,
-      urlList: []
-    }
-    torrent._onParsedTorrent(meta)
-    torrent._onMetadata(meta)
-    torrent.on('wire', (wire => {
-      console.log(wire)
-      torrent._onWireWithMetadata(wire)
-    }))
-
-    return torrent
-  }
-
   /**
    * Start seeding a new file/folder.
    * @param  {string|File|FileList|Buffer|Array.<string|File|Buffer>} input
