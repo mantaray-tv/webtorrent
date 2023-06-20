@@ -404,7 +404,10 @@ export default class WebTorrent extends EventEmitter {
           'udp://exodus.desync.com:6969',
           'wss://tracker.btorrent.xyz',
           'wss://tracker.openwebtorrent.com',
-          'wss://tracker.fastcast.nz'
+          'wss://tracker.fastcast.nz',
+          'udp://tracker.opentrackr.org:1337',
+          'udp://explodie.org:6969',
+          'udp://tracker.empire-js.us:1337'
         ],
         infoHashBuffer: encoder.encode(opts.infoHash),
         infoHash: opts.infoHash,
