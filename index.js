@@ -396,7 +396,16 @@ export default class WebTorrent extends EventEmitter {
       torrent._onTorrentInfo({
         info: opts.metadata,
         name: opts.metadata.name.toString(),
-        announce: globalThis.WEBTORRENT_ANNOUNCE,
+        announce: [
+          'udp://tracker.openbittorrent.com:80',
+          'udp://tracker.internetwarriors.net:1337',
+          'udp://tracker.leechers-paradise.org:6969',
+          'udp://tracker.coppersurfer.tk:6969',
+          'udp://exodus.desync.com:6969',
+          'wss://tracker.btorrent.xyz',
+          'wss://tracker.openwebtorrent.com',
+          'wss://tracker.fastcast.nz'
+        ],
         infoHashBuffer: encoder.encode(opts.infoHash),
         infoHash: opts.infoHash,
         created: new Date(),
