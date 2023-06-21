@@ -396,7 +396,7 @@ export default class WebTorrent extends EventEmitter {
       torrent._onTorrentInfo({
         info: opts.metadata,
         name: opts.metadata.name.toString(),
-        announce: globalThis.TRACKERS,
+        announce: globalThis.TRACKERS.filter(url => url.indexOf('wss://') === 0 || url.indexOf('ws://') === 0),
         infoHashBuffer: encoder.encode(opts.infoHash),
         infoHash: opts.infoHash,
         created: new Date(),
